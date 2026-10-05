@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # 12 — Deploy the DataBank Chat App (3 memory modes)
 # MAGIC
@@ -34,18 +38,18 @@ MODE = dbutils.widgets.get("mode")
 # COMMAND ----------
 
 # MAGIC %md ### 3. Fetch Genie Space ID from Name
-
-from databricks.sdk import WorkspaceClient
-
-w = WorkspaceClient()
-genie_space_id = None
-existing_spaces = w.api_client.do("GET", "/api/2.0/genie/spaces")
-for space in existing_spaces.get("spaces", []):
-    if space.get("title") == GENIE_NAME:
-        genie_space_id = space.get("space_id")
-        break
-
-print(f"Genie Space ID for '{GENIE_NAME}': {genie_space_id}")
+# MAGIC
+# MAGIC from databricks.sdk import WorkspaceClient
+# MAGIC
+# MAGIC w = WorkspaceClient()
+# MAGIC genie_space_id = None
+# MAGIC existing_spaces = w.api_client.do("GET", "/api/2.0/genie/spaces")
+# MAGIC for space in existing_spaces.get("spaces", []):
+# MAGIC     if space.get("title") == GENIE_NAME:
+# MAGIC         genie_space_id = space.get("space_id")
+# MAGIC         break
+# MAGIC
+# MAGIC print(f"Genie Space ID for '{GENIE_NAME}': {genie_space_id}")
 
 # COMMAND ----------
 
