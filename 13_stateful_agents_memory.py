@@ -219,15 +219,18 @@ def resolve_agent_endpoint():
     if AGENT_ENDPOINT in names:
         return AGENT_ENDPOINT
 
+    # Fuzzy matching is restricted to endpoints YOU created: this notebook sends session history and
+    # recalled memory to the endpoint, so it must never resolve to another user's agent on a shared workspace.
+    me = w.current_user.me().user_name
+    my_eps = [ep for ep in all_eps if ep.creator == me]
+
     normalise = lambda s: re.sub(r"[^a-z0-9]", "", s.lower())
     term = normalise(f"{username_clean}_DataBank-AI-Advisor")
-    match = next((n for n in names if term in normalise(n)), None)
+    match = next((ep.name for ep in my_eps if term in normalise(ep.name)), None)
     if match:
         return match
 
-    me = w.current_user.me().user_name
-    mine = [ep.name for ep in all_eps
-            if ep.name.startswith("mas-") and ep.name.endswith("-endpoint") and ep.creator == me]
+    mine = [ep.name for ep in my_eps if ep.name.startswith("mas-") and ep.name.endswith("-endpoint")]
     return mine[0] if mine else None
 
 AGENT_ENDPOINT_NAME = resolve_agent_endpoint()
