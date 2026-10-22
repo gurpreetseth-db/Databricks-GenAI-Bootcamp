@@ -82,9 +82,27 @@ Complete these **before the lab starts**:
 | 08 | `08_Playground_Deploy_App.ipynb` | ~25 min | Test in **AI Playground**, then **Export to Databricks Apps** → live chat app wired to the AI Gateway |
 | 09 | `09_evaluation_llm_judge` | ~20 min | Evaluation run with LLM-as-a-judge scorers |
 | 10 | `10_evaluation_labels` | ~15 min | Label schemas · human labeling session · review workflow |
+| 12 | `12_deploy_chat_app` | ~15 min | Bundle deploy of the `databank-chat-demo` app in `simple` / `shortterm` / `longterm` memory mode |
+| 13 | `13_stateful_agents_memory` | ~35 min | **Stateful Agents:** Agent **Sessions** + Agent **Memory** + **Memory Pipeline**, demoed on a brand-new session and on the Module 07 agent (via a memory wrapper) |
 | ★ | `UC_AI_Gateway_Complete_Demo` | ~45 min | **Bonus:** end-to-end Unity AI Gateway **Model Services** demo (UC-governed model API) |
 
 > **Note:** `Dont Use - 08_databricks_app.py` is the deprecated hand-coded Gradio version of Module 08. It is kept for reference only — use `08_Playground_Deploy_App.ipynb` instead.
+
+### Module 13 — Stateful Agents (optional extension)
+
+Module 13 uses Databricks' managed [Stateful Agents](https://docs.databricks.com/aws/en/agents/custom-agents/stateful-agents) building blocks (all Lakebase-backed):
+
+| Building block | Scope | In the notebook |
+|----------------|-------|-----------------|
+| **Agent Session** | One conversation | `session_store.add / get`, `append_items`, `list_items` |
+| **Agent Memory** | Across conversations, semantic search | `memory_store.put / list / search` |
+| **Memory Pipeline** | Distills sessions → memory (on demand or ~24h) | `/api/2.0/agents/memory-pipelines` create → run → poll |
+
+- **Part A** – raw session + memory APIs on a brand-new session.
+- **Part B** – adds state to the **existing Module 07 Supervisor Agent**. Its endpoint can't be modified, so a small `StatefulAdvisor` wrapper recalls memory + history, injects them into the call, then records the turn. (For agents whose code you own, use the `databricks_agentkit.openai` / `.langgraph` integrations instead.)
+- **Part C/D** – run the memory pipeline, then show a **new session with empty history** still answering from long-term memory.
+
+Requires `databricks-agentbricks>=0.6.0` (installed by the notebook) and Lakebase. This is separate from the custom Lakebase memory manager in `databank-chat-demo` (Module 12), which is hand-built; Module 13 uses the platform-managed APIs.
 
 ---
 
@@ -251,6 +269,14 @@ It contrasts this new API against the older serving-endpoint `ai_gateway` block.
 | Iterating `search_traces()` yields column names | It returns a DataFrame — use `traces.itertuples()` |
 | `mlflow.genai.label()` does not exist | Use `mlflow.log_feedback(trace_id=..., name=..., value=..., rationale=...)` |
 
+### Module 13 — Stateful Agents
+| Issue | Fix |
+|-------|-----|
+| `ModuleNotFoundError: databricks_agentkit` | The pip package is `databricks-agentbricks` (>=0.6.0) but the import is `databricks_agentkit` — re-run the install cell and let the kernel restart |
+| Store ID rejected | IDs are 3–56 chars, lowercase alphanumeric + hyphens, and can't be changed after creation |
+| Pipeline run `FAILED` / won't start | Only one run per pipeline at a time; check the `error` field in the printed run status and that you can query the pipeline model |
+| Agent ignores remembered facts | Confirm `memory_store.list(actor_id=...)` returns entries — the pipeline only stores durable facts, not credentials or dynamic values |
+
 ---
 
 ## Key Variables Participants Should Record
@@ -261,6 +287,7 @@ It contrasts this new API against the older serving-endpoint `ai_gateway` block.
 | `AGENT_ENDPOINT` | Module 07 → Serving → Endpoints | Modules 08, 09 |
 | `APP_URL` | Module 08 export output | Demo |
 | `LABELING_SESSION_URL` | Module 10 output | Human review |
+| `SESSION_STORE_ID` / `MEMORY_STORE_ID` | Module 13 (derived from your username) | Module 13 |
 
 ---
 
@@ -343,6 +370,7 @@ Databricks-GenAI-Bootcamp/
 ├── 09_evaluation_llm_judge.py         ← LLM-as-a-judge evaluation
 ├── 10_evaluation_labels.py            ← Label schemas, human labeling, review workflow
 ├── 12_deploy_chat_app.py              ← Notebook that drives the bundle deploy (pick a memory mode)
+├── 13_stateful_agents_memory.py       ← Stateful Agents: Sessions, Memory & Memory Pipeline (new session + Module 07 agent)
 ├── UC_AI_Gateway_Complete_Demo.py     ← Bonus: Unity AI Gateway Model Services demo
 ├── img/                               ← Screenshots referenced by the notebooks
 ├── lib/                               ← Helper package
